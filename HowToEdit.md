@@ -163,7 +163,7 @@ sources/
    ↓
 3. 政策ドキュメント作成
    ↓
-4. Pull Request作成
+4. Pull Request作成(2,3,4はIssueをGitHub Copilotにアサインすることで自動化可能)
    ↓
 5. コミュニティレビュー・議論
    ↓
