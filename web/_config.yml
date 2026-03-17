@@ -1,0 +1,33 @@
+title: 公明サポーターズ政策協議ポータル
+description: 公明サポーターズによる政策提案・議論・採択状況を公開するポータルサイト
+lang: ja
+theme: minima
+markdown: kramdown
+
+url: ""
+baseurl: ""
+
+collections:
+  policies:
+    output: true
+
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: ""
+      type: "policies"
+    values:
+      layout: "policy"
+
+navigation:
+  - title: "トップ"
+    url: "/"
+  - title: "政策一覧"
+    url: "/policies/"
+  - title: "Issue一覧"
+    url: "/issues/"
+
