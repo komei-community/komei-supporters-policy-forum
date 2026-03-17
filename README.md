@@ -123,6 +123,13 @@ _提案例_:
 
 ### 💡 政策を提案したい場合
 
+**GitHub に慣れていない方は、Google フォームから簡単に政策要望を投稿できます。**
+
+**[政策要望フォームはこちら](https://docs.google.com/forms/d/e/1FAIpQLScZBArAB1cg-QL9BKSFNDfdgHOctV9qMG-TIZRm8ekI2HgU0g/viewform)**
+
+フォームから送信された内容は、自動的に GitHub Issue として登録されます。
+
+GitHub を直接利用する場合:
 1. **Issue 作成**: 新規政策提案用の Issue テンプレートを使用
 2. **議論参加**: 提案された Issue でコメント・改善案を投稿
 3. **PR 作成**: 具体的な政策案を Pull Request で提出
