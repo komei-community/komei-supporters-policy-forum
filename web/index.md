@@ -15,10 +15,10 @@ title: 公明サポーターズ政策協議ポータル
 
 くわしい背景や運営方針は、GitHub 上の README をご覧ください。
 
-- [GitHub リポジトリトップ](..)
+- [GitHub リポジトリトップ](https://github.com/komei-supporters/komei-supporters-policy-forum)
 
 ## コンテンツ
 
-- [提案中・採択済みの政策一覧](/policies/)
-- [Issue一覧（議題・ディスカッション）](/issues/)
+- [提案中・採択済みの政策一覧]({{ '/policies/' | relative_url }})
+- [Issue一覧（議題・ディスカッション）]({{ '/issues/' | relative_url }})
 
