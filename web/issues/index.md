@@ -46,12 +46,22 @@ title: Issue一覧（議題・ディスカッション）
             <ul>
               {% for pr in issue.related_prs %}
                 <li>
-                  <a href="{{ pr.html_url }}" target="_blank" rel="noopener noreferrer">
-                    PR #{{ pr.number }} {{ pr.title }}
-                  </a>
-                  <span>
-                    （状態: {{ pr.state }}{% if pr.merged_at %}, マージ日: {{ pr.merged_at | date: "%Y-%m-%d" }}{% endif %}）
-                  </span>
+                  <p>
+                    <strong>
+                      PR #{{ pr.number }} {{ pr.title }}
+                    </strong>
+                    <span>
+                      （状態: {{ pr.state }}{% if pr.merged_at %}, マージ日: {{ pr.merged_at | date: "%Y-%m-%d" }}{% endif %}）
+                    </span>
+                  </p>
+                  {% if pr.body_summary %}
+                    <p>{{ pr.body_summary }}{% if pr.body_summary.size == 400 %}…{% endif %}</p>
+                  {% endif %}
+                  <p>
+                    <a href="{{ pr.html_url }}" target="_blank" rel="noopener noreferrer">
+                      GitHub でこの提案の全文と差分を見る
+                    </a>
+                  </p>
                 </li>
               {% endfor %}
             </ul>
