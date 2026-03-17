@@ -43,7 +43,25 @@ async function main() {
 
   let pulls = [];
   if (prsRes.ok) {
-    pulls = await prsRes.json();
+    const rawPulls = await prsRes.json();
+    // 本文を短く整形したサマリを付与
+    pulls = rawPulls.map(pr => {
+      const body = pr.body || "";
+      const bodySummary = body
+        .replace(/\r\n/g, "\n")
+        .split("\n")
+        .filter(line => line.trim().length > 0)
+        .join(" ")
+        .slice(0, 400);
+      return {
+        number: pr.number,
+        title: pr.title,
+        html_url: pr.html_url,
+        state: pr.state,
+        merged_at: pr.merged_at || null,
+        body_summary: bodySummary
+      };
+    });
   } else {
     console.warn("Failed to fetch pull requests", prsRes.status, await prsRes.text());
   }
@@ -60,13 +78,19 @@ async function main() {
         .slice(0, 280);
 
       const related_prs = pulls
-        .filter(pr => (pr.body || "").includes(`#${issue.number}`))
+        .filter(pr => {
+          // PR本文中に #<issue番号> が含まれているものを関連PRとみなす
+          // body_summary は既に正規化済みだが、念のため title も含めて判定
+          const marker = `#${issue.number}`;
+          return (pr.body_summary && pr.body_summary.includes(marker)) || (pr.title && pr.title.includes(marker));
+        })
         .map(pr => ({
           number: pr.number,
           title: pr.title,
           html_url: pr.html_url,
           state: pr.state,
-          merged_at: pr.merged_at || null
+          merged_at: pr.merged_at || null,
+          body_summary: pr.body_summary
         }));
 
       return {
