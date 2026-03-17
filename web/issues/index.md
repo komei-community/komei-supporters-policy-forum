@@ -9,6 +9,17 @@ title: Issue一覧（議題・ディスカッション）
 このページでは、GitHub リポジトリ上の Issue（議題）を一覧表示しています。各Issueのタイトルをクリックすると、GitHub 上で詳細な議論と履歴を確認できます。関連する Pull Request があれば、「提案詳細」として一覧の下に表示されます。
 </p>
 
+<p>
+  <a
+    class="btn-primary"
+    href="https://docs.google.com/forms/d/e/1FAIpQLScZBArAB1cg-QL9BKSFNDfdgHOctV9qMG-TIZRm8ekI2HgU0g/viewform"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    新しい政策要望を投稿する（Googleフォームが開きます）
+  </a>
+</p>
+
 {% assign issues = site.data.issues | sort: "number" | reverse %}
 
 {% if issues and issues.size > 0 %}
