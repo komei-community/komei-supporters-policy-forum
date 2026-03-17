@@ -32,6 +32,22 @@ async function main() {
 
   const data = await res.json();
 
+  const prsRes = await fetch(`https://api.github.com/repos/${repo}/pulls?state=all&per_page=100`, {
+    headers: {
+      "Accept": "application/vnd.github+json",
+      "Authorization": `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "komei-supporters-policy-forum-fetch-issues"
+    }
+  });
+
+  let pulls = [];
+  if (prsRes.ok) {
+    pulls = await prsRes.json();
+  } else {
+    console.warn("Failed to fetch pull requests", prsRes.status, await prsRes.text());
+  }
+
   const simplified = data
     .filter(item => !item.pull_request) // PRは除外
     .map(issue => {
@@ -43,6 +59,16 @@ async function main() {
         .join(" ")
         .slice(0, 280);
 
+      const related_prs = pulls
+        .filter(pr => (pr.body || "").includes(`#${issue.number}`))
+        .map(pr => ({
+          number: pr.number,
+          title: pr.title,
+          html_url: pr.html_url,
+          state: pr.state,
+          merged_at: pr.merged_at || null
+        }));
+
       return {
         number: issue.number,
         title: issue.title,
@@ -50,7 +76,8 @@ async function main() {
         state: issue.state,
         created_at: issue.created_at,
         updated_at: issue.updated_at,
-        summary
+        summary,
+        related_prs
       };
     });
 
