@@ -4,7 +4,7 @@ lang: ja
 theme: minima
 markdown: kramdown
 
-url: "https://komei-supporters.github.io"
+url: "https://komei-community.github.io"
 baseurl: "/komei-supporters-policy-forum"
 
 collections:
