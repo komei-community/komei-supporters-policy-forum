@@ -4,6 +4,29 @@ on:
   push:
     branches:
       - main
+  issues:
+    types:
+      - opened
+      - edited
+      - closed
+      - reopened
+      - labeled
+      - unlabeled
+      - milestoned
+      - demilestoned
+      - assigned
+      - unassigned
+  pull_request:
+    types:
+      - opened
+      - edited
+      - closed
+      - reopened
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+      - labeled
+      - unlabeled
   workflow_dispatch:
 
 permissions:
