@@ -144,7 +144,7 @@ GitHub を直接利用する場合:
 - [プロジェクト憲章](./プロジェクト憲章.md): プロジェクトの理念・目的・スコープ
 - [運用ルール](./運用ルール.md): 参加ルール・議論の進め方・成果物管理
 - [編集ガイド](./HowToEdit.md): 具体的な参加・編集方法
-- 公開用ポータルサイト（GitHub Pages）: このリポジトリの内容をGitHubアカウントがなくても閲覧できるWebサイト（URLは設定後にここに記載）
+- 公開用ポータルサイト（GitHub Pages）: このリポジトリの内容をGitHubアカウントがなくても閲覧できる[Webサイト](https://komei-community.github.io/komei-supporters-policy-forum/)
 
 ### 🌐 GitHub Pages による公開
 
