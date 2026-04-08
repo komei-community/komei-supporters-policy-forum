@@ -1,6 +1,116 @@
 const fs = require("fs");
 const path = require("path");
 
+function summarizeBody(body, maxLength) {
+  return (body || "")
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .filter(line => line.trim().length > 0)
+    .join(" ")
+    .slice(0, maxLength);
+}
+
+function normalizePrState(state) {
+  if (!state) return "open";
+  return String(state).toLowerCase();
+}
+
+async function fetchLinkedPrsByGraphql(repo, token, issueNumber) {
+  const [owner, name] = repo.split("/");
+  if (!owner || !name) return [];
+
+  const query = `
+    query($owner: String!, $name: String!, $issueNumber: Int!) {
+      repository(owner: $owner, name: $name) {
+        issue(number: $issueNumber) {
+          timelineItems(
+            first: 100
+            itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]
+          ) {
+            nodes {
+              __typename
+              ... on CrossReferencedEvent {
+                source {
+                  __typename
+                  ... on PullRequest {
+                    number
+                    title
+                    url
+                    state
+                    mergedAt
+                    body
+                  }
+                }
+              }
+              ... on ConnectedEvent {
+                subject {
+                  __typename
+                  ... on PullRequest {
+                    number
+                    title
+                    url
+                    state
+                    mergedAt
+                    body
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const res = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      "Accept": "application/vnd.github+json",
+      "Authorization": `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "komei-supporters-policy-forum-fetch-issues"
+    },
+    body: JSON.stringify({
+      query,
+      variables: { owner, name, issueNumber }
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.warn(`GraphQL failed for issue #${issueNumber}`, res.status, text);
+    return [];
+  }
+
+  const payload = await res.json();
+  if (payload.errors && payload.errors.length > 0) {
+    console.warn(`GraphQL errors for issue #${issueNumber}`, JSON.stringify(payload.errors));
+    return [];
+  }
+
+  const nodes = payload?.data?.repository?.issue?.timelineItems?.nodes || [];
+  const results = [];
+  for (const node of nodes) {
+    let pr = null;
+    if (node?.__typename === "CrossReferencedEvent" && node?.source?.__typename === "PullRequest") {
+      pr = node.source;
+    } else if (node?.__typename === "ConnectedEvent" && node?.subject?.__typename === "PullRequest") {
+      pr = node.subject;
+    }
+    if (!pr) continue;
+
+    results.push({
+      number: pr.number,
+      title: pr.title,
+      html_url: pr.url,
+      state: normalizePrState(pr.state),
+      merged_at: pr.mergedAt || null,
+      body_summary: summarizeBody(pr.body, 400)
+    });
+  }
+  return results;
+}
+
 async function main() {
   const repo = process.env.GITHUB_REPOSITORY;
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -14,7 +124,7 @@ async function main() {
     process.exit(1);
   }
 
-  const apiUrl = `https://api.github.com/repos/${repo}/issues?state=all&per_page=100`;
+  const apiUrl = `https://api.github.com/repos/${repo}/issues?state=open&per_page=100`;
 
   const res = await fetch(apiUrl, {
     headers: {
@@ -45,39 +155,25 @@ async function main() {
   if (prsRes.ok) {
     const rawPulls = await prsRes.json();
     // 本文を短く整形したサマリを付与
-    pulls = rawPulls.map(pr => {
-      const body = pr.body || "";
-      const bodySummary = body
-        .replace(/\r\n/g, "\n")
-        .split("\n")
-        .filter(line => line.trim().length > 0)
-        .join(" ")
-        .slice(0, 400);
-      return {
+    pulls = rawPulls.map(pr => ({
         number: pr.number,
         title: pr.title,
         html_url: pr.html_url,
         state: pr.state,
         merged_at: pr.merged_at || null,
-        body_summary: bodySummary
-      };
-    });
+        body_summary: summarizeBody(pr.body, 400)
+      }));
   } else {
     console.warn("Failed to fetch pull requests", prsRes.status, await prsRes.text());
   }
 
-  const simplified = data
-    .filter(item => !item.pull_request) // PRは除外
-    .map(issue => {
-      const body = issue.body || "";
-      const summary = body
-        .replace(/\r\n/g, "\n")
-        .split("\n")
-        .filter(line => line.trim().length > 0)
-        .join(" ")
-        .slice(0, 280);
+  const simplified = await Promise.all(
+    data
+      .filter(item => !item.pull_request) // PRは除外
+      .map(async issue => {
+      const summary = summarizeBody(issue.body, 280);
 
-      const related_prs = pulls
+      const markerRelatedPrs = pulls
         .filter(pr => {
           // PR本文中に #<issue番号> が含まれているものを関連PRとみなす
           // body_summary は既に正規化済みだが、念のため title も含めて判定
@@ -93,6 +189,13 @@ async function main() {
           body_summary: pr.body_summary
         }));
 
+      const linkedPrs = await fetchLinkedPrsByGraphql(repo, token, issue.number);
+      const relatedPrMap = new Map();
+      for (const pr of [...markerRelatedPrs, ...linkedPrs]) {
+        relatedPrMap.set(pr.number, pr);
+      }
+      const related_prs = Array.from(relatedPrMap.values()).sort((a, b) => b.number - a.number);
+
       return {
         number: issue.number,
         title: issue.title,
@@ -103,7 +206,8 @@ async function main() {
         summary,
         related_prs
       };
-    });
+    })
+  );
 
   const outDir = path.join(__dirname, "..", "web", "_data");
   const outPath = path.join(outDir, "issues.json");
