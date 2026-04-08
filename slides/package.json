@@ -1,0 +1,19 @@
+{
+  "name": "slides",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "slidev",
+    "build": "slidev build",
+    "export": "slidev export"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slidev/cli": "^52.14.2"
+  },
+  "devDependencies": {
+    "@slidev/theme-default": "^0.25.0"
+  }
+}
